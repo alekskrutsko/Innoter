@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'Innoter.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': os.getenv('POSTGRES_ENGINE', "django.db.backends.sqlite3"),
-        'NAME': BASE_DIR / os.getenv('POSTGRES_DB', "innotter_db"),
+        'NAME': os.getenv('POSTGRES_DB', "innotter_db"),
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': os.getenv('POSTGRES_HOST'),

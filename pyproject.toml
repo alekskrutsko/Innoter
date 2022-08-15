@@ -1,13 +1,15 @@
 [tool.poetry]
-name = "innoter"
+name = "innotter"
 version = "0.1.0"
 description = ""
-authors = ["Alexei Krutko <aleks.krutsko@gmail.com>"]
+authors = ["Alex <aleks.krutsko@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 Django = "^4.1"
 python-dotenv = "^0.20.0"
+psycopg2-binary = "^2.9.3"
+
 [tool.poetry.dev-dependencies]
 
 [build-system]

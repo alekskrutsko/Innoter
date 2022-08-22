@@ -1,4 +1,3 @@
 from rest_framework import serializers
 
-
-class CreatePostSerializer(serializers.ModelSerializer):
+# class CreatePostSerializer(serializers.ModelSerializer):

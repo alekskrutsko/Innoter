@@ -1,6 +1,8 @@
 import os
+from distutils.util import strtobool
 from pathlib import Path
 from dotenv import load_dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -13,7 +15,7 @@ load_dotenv()
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG')
+DEBUG = int(os.getenv("DEBUG", 1))
 
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS").split()
 
@@ -26,6 +28,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'apps.user.apps.UserConfig',
+    'apps.page.apps.PageConfig',
+    'apps.post.apps.PostConfig',
+    'apps.tag.apps.TagConfig',
+    'rest_framework',
+    "jwt",
 ]
 
 MIDDLEWARE = [
@@ -59,7 +68,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'Innotter.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -74,9 +82,7 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
+AUTH_USER_MODEL = "user.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -93,7 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -105,7 +110,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
@@ -115,3 +119,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("apps.user.backends.JWTAuthentication",),
+}

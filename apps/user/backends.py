@@ -15,7 +15,7 @@ def expired_token(request):
 
     user = User.objects.get(refresh_token=refresh_token)
 
-    if user is None:
+    if not user:
         raise User.DoesNotExist
 
     return user.access_token

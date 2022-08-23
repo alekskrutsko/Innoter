@@ -12,15 +12,15 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
+        fields = (
             "email",
             "username",
             "title",
             "role",
             "password",
             "access_token",
-            "refresh_token",
-        ]
+            "refresh_token"
+        )
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
@@ -43,15 +43,15 @@ class UserLoginSerializer(serializers.Serializer):
             "password",
         )
 
-        if email is None:
+        if not email:
             raise serializers.ValidationError("An email address is required to log in.")
 
-        if password is None:
+        if not password:
             raise serializers.ValidationError("A password is required to log in.")
 
         user = authenticate(username=email, password=password)
 
-        if user is None:
+        if not user:
             raise serializers.ValidationError(
                 "A user with this email and password was not found."
             )
@@ -75,7 +75,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = [
+        fields = (
             "email",
             "username",
             "password",
@@ -86,14 +86,14 @@ class UserSerializer(serializers.ModelSerializer):
             "refresh_token",
             "follows",
             "is_blocked",
-        ]
-        read_only_fields = [
-            "refresh_token",
-            "is_active",
-            "role",
-            "pages",
-            "follows",
-        ]
+        )
+        extra_kwargs = {
+            "refresh_token": {"read_only": True},
+            "is_active": {"read_only": True},
+            "role": {"read_only": True},
+            "pages": {"read_only": True},
+            "follows": {"read_only": True}
+        }
 
     def update(self, instance, validated_data):
         password = validated_data.pop("password", None)
@@ -101,7 +101,7 @@ class UserSerializer(serializers.ModelSerializer):
         for key, value in validated_data.items():
             setattr(instance, key, value)
 
-        if password is not None:
+        if password:
             instance.set_password(password)
 
         instance.save()

@@ -65,7 +65,7 @@ class UserMixin(
         return [permission() for permission in permission_classes]
 
     def retrieve(self, request, *args, **kwargs):
-        if User.objects.filter(pk=kwargs["pk"]).first() is None:
+        if User.objects.filter(pk=kwargs["pk"]).exists():
             return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(User.objects.get(pk=kwargs["pk"]))

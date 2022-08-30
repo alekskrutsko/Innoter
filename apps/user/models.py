@@ -8,11 +8,10 @@ from Innotter import settings
 
 
 class User(AbstractUser):
-
     class Roles(models.TextChoices):
-        USER = 'user'
-        MODERATOR = 'moderator'
-        ADMIN = 'admin'
+        USER = "user"
+        MODERATOR = "moderator"
+        ADMIN = "admin"
 
     email = models.EmailField(unique=True)
     username = models.CharField(db_index=True, max_length=255, unique=True)

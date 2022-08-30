@@ -10,7 +10,11 @@ from Innotter.basic_mixin import GetPermissionsMixin
 from apps.page.permissions import IsAdminOrModerator
 from apps.post.permissions import IsOwner, IsBlockedPage, IsPublicPage
 from apps.post.models import Post
-from apps.post.serializers import PostSerializer, ListPostSerializer, UpdatePostSerializer
+from apps.post.serializers import (
+    PostSerializer,
+    ListPostSerializer,
+    UpdatePostSerializer,
+)
 
 
 class PostViewSet(ModelViewSet):
@@ -19,12 +23,31 @@ class PostViewSet(ModelViewSet):
     }
     queryset = Post.objects.all()
     permission_classes = {
-        'partial_update': (IsAuthenticated, IsOwner, ~IsBlockedPage,),
-        'update': (IsAuthenticated, ~IsBlockedPage,),
-        'destroy': (IsAuthenticated, ~IsBlockedPage, (IsOwner | IsAdminOrModerator),),
-        'create': (IsAuthenticated, IsOwner, ~IsBlockedPage),
-        'list': (IsAuthenticated, (IsPublicPage | IsOwner | IsAdminOrModerator), ~IsBlockedPage),
-        'retrieve': (IsAuthenticated, (IsPublicPage | IsOwner | IsAdminOrModerator), ~IsBlockedPage),
+        "partial_update": (
+            IsAuthenticated,
+            IsOwner,
+            ~IsBlockedPage,
+        ),
+        "update": (
+            IsAuthenticated,
+            ~IsBlockedPage,
+        ),
+        "destroy": (
+            IsAuthenticated,
+            ~IsBlockedPage,
+            (IsOwner | IsAdminOrModerator),
+        ),
+        "create": (IsAuthenticated, IsOwner, ~IsBlockedPage),
+        "list": (
+            IsAuthenticated,
+            (IsPublicPage | IsOwner | IsAdminOrModerator),
+            ~IsBlockedPage,
+        ),
+        "retrieve": (
+            IsAuthenticated,
+            (IsPublicPage | IsOwner | IsAdminOrModerator),
+            ~IsBlockedPage,
+        ),
     }
 
     def get_serializer_class(self):

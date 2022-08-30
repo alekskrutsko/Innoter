@@ -13,4 +13,3 @@ urlpatterns = [
     path("", include(router.urls)),
     path("posts/", AllPostViewSet.as_view({"get": "get_all_posts"})),
 ]
-

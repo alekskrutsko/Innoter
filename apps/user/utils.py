@@ -2,7 +2,12 @@ from datetime import datetime
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, ListModelMixin
+from rest_framework.mixins import (
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+)
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -10,7 +15,11 @@ from rest_framework.viewsets import GenericViewSet
 from Innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 from apps.user.models import User
 from apps.user.permissions import IsAdmin
-from apps.user.serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
+from apps.user.serializers import (
+    UserSerializer,
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+)
 
 
 class UserMixin(
@@ -132,10 +141,7 @@ class UserMixin(
 
         return response
 
-    @action(
-        detail=False,
-        methods=("post",)
-    )
+    @action(detail=False, methods=("post",))
     def register(self, request):
         user = request.data.get(
             "user",

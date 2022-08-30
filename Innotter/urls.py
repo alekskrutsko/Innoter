@@ -2,10 +2,10 @@ from django.contrib import admin
 from django.urls import include, path
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path("api/", include("apps.user.urls", namespace="authentication")),
-    path("api/", include("apps.page.urls", namespace="page")),
-    path("api/", include("apps.tag.urls", namespace="tag")),
-    path("api/", include("apps.post.urls", namespace="post")),
-    path("api/", include("apps.like.urls", namespace="likes")),
+    path("admin/", admin.site.urls),
+    path("authentication/", include("apps.user.urls", namespace="authentication")),
+    path("page/", include("apps.page.urls", namespace="page")),
+    path("tag/", include("apps.tag.urls", namespace="tag")),
+    path("post/", include("apps.post.urls", namespace="post")),
+    path("likes/", include("apps.like.urls", namespace="likes")),
 ]

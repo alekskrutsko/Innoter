@@ -4,7 +4,7 @@ from apps.user.models import User
 
 
 def create_like(current_user: User, liked_post: Post) -> None:
-    Like.objects.create(owner=current_user, post=liked_post)
+    Like.objects.create(owner=current_user, post__id=liked_post.id)
 
 
 def delete_like(current_user: User, liked_post: Post) -> None:

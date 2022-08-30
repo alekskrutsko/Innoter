@@ -1,6 +1,11 @@
 from django.shortcuts import render
-from rest_framework.mixins import CreateModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin, \
-    ListModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
@@ -14,13 +19,15 @@ from apps.post.models import Post
 from apps.user.models import User
 
 
-class LikeViewSet(GetSerializerMixin,
-                  GetPermissionsMixin,
-                  CreateModelMixin,
-                  RetrieveModelMixin,
-                  DestroyModelMixin,
-                  ListModelMixin,
-                  GenericViewSet):
+class LikeViewSet(
+    GetSerializerMixin,
+    GetPermissionsMixin,
+    CreateModelMixin,
+    RetrieveModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    GenericViewSet,
+):
     queryset = Like.objects.all()
 
     permission_classes = {
@@ -53,8 +60,8 @@ class LikeViewSet(GetSerializerMixin,
     def perform_create(self, serializer):
 
         if not Like.objects.filter(
-                owner=self.request.user,
-                post__id=serializer.validated_data.get("post").pk,
+            owner=self.request.user,
+            post__id=serializer.validated_data.get("post").pk,
         ).exists():
             create_like(
                 current_user=self.request.user,
@@ -67,12 +74,10 @@ class LikeViewSet(GetSerializerMixin,
             )
 
     def get_queryset(self):
-        if self.request.data.get("post"):
-            return Like.objects.filter(
-                post=Post.objects.get(pk=self.request.data.get("post"))
-            )
+        if post := self.request.data.get("post"):
+            return Like.objects.filter(post=Post.objects.get(pk=post))
         elif (
-                self.request.user.role == User.Roles.ADMIN
-                and not self.request.data.get("post")
+            self.request.user.role == (User.Roles.ADMIN or User.Roles.MODERATOR)
+            and not post
         ):
             return Like.objects.all()

@@ -5,7 +5,7 @@ from apps.user.models import User
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(default='user')
+    role = serializers.CharField(default="user")
     password = serializers.CharField(max_length=128, min_length=8, write_only=True)
     access_token = serializers.CharField(max_length=255, read_only=True)
     refresh_token = serializers.CharField(max_length=255, read_only=True)
@@ -19,7 +19,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             "role",
             "password",
             "access_token",
-            "refresh_token"
+            "refresh_token",
         )
 
     def create(self, validated_data):
@@ -80,7 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "password",
             "title",
-            'image_s3_path',
+            "image_s3_path",
             "role",
             "refresh_token",
             "is_blocked",

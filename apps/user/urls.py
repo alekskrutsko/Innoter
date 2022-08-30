@@ -12,4 +12,6 @@ urlpatterns = [
     path("", include(router.urls)),
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)   #will be needed to specify the allowed suffixes
+urlpatterns = format_suffix_patterns(
+    urlpatterns
+)  # will be needed to specify the allowed suffixes

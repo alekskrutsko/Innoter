@@ -2,8 +2,11 @@ from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 from rest_framework.urlpatterns import format_suffix_patterns
 
+from apps.page.views import PagesListViewSet, CurrentUserPagesViewSet
+
 router = SimpleRouter()
-# router.register("pages", "pass")  # change  pass into corresponding view
+router.register(r"pages", PagesListViewSet, basename="pages")
+router.register(r"my-pages", CurrentUserPagesViewSet, basename="my-pages")
 
 app_name = "Pages"
 urlpatterns = [

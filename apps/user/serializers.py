@@ -80,19 +80,15 @@ class UserSerializer(serializers.ModelSerializer):
             "username",
             "password",
             "title",
-            "is_active",
+            'image_s3_path',
             "role",
-            "pages",
             "refresh_token",
-            "follows",
             "is_blocked",
         )
         extra_kwargs = {
             "refresh_token": {"read_only": True},
-            "is_active": {"read_only": True},
+            "is_blocked": {"read_only": True},
             "role": {"read_only": True},
-            "pages": {"read_only": True},
-            "follows": {"read_only": True}
         }
 
     def update(self, instance, validated_data):
@@ -107,3 +103,12 @@ class UserSerializer(serializers.ModelSerializer):
         instance.save()
 
         return instance
+
+
+class UsernameSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["username"]
+        extra_kwargs = {
+            "username": {"read_only": True},
+        }

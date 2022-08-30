@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.page.apps.PageConfig',
     'apps.post.apps.PostConfig',
     'apps.tag.apps.TagConfig',
+    'apps.like.apps.LikeConfig',
     'rest_framework',
     "jwt",
 ]

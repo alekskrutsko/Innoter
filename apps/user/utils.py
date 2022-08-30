@@ -7,12 +7,15 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from Innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 from apps.user.models import User
 from apps.user.permissions import IsAdmin
 from apps.user.serializers import UserSerializer, UserRegistrationSerializer, UserLoginSerializer
 
 
 class UserMixin(
+    GetSerializerMixin,
+    GetPermissionsMixin,
     GenericViewSet,
     ListModelMixin,
     RetrieveModelMixin,
@@ -57,13 +60,6 @@ class UserMixin(
         "login": (AllowAny,),
     }
 
-    def get_serializer_class(self):
-        return self.serializer_classes.get(self.action)
-
-    def get_permissions(self):
-        permission_classes = self.permission_classes.get(self.action, IsAuthenticated)
-        return [permission() for permission in permission_classes]
-
     def retrieve(self, request, *args, **kwargs):
         if User.objects.filter(pk=kwargs["pk"]).exists():
             return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
@@ -79,7 +75,7 @@ class UserMixin(
         return response
 
     def update(self, request, *args, **kwargs):
-        if User.objects.filter(pk=kwargs["pk"]).first() is None:
+        if not User.objects.filter(pk=kwargs["pk"]).exists():
             return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer_data = request.data.get(
@@ -138,12 +134,7 @@ class UserMixin(
 
     @action(
         detail=False,
-        methods=("post",),
-        # permission_classes=(
-        #         {
-        #             "register": (AllowAny,),
-        #         }
-        # ),
+        methods=("post",)
     )
     def register(self, request):
         user = request.data.get(

@@ -1,13 +1,16 @@
 from django.urls import path, include
 from rest_framework.routers import SimpleRouter
-from rest_framework.urlpatterns import format_suffix_patterns
+
+from apps.post.views import PostViewSet, AllPostViewSet
+
 
 router = SimpleRouter()
-# router.register("posts", "pass")  # change  pass into corresponding view
+router.register(r"posts", PostViewSet, basename="page")
 
-app_name = "Posts"
+app_name = "posts"
+
 urlpatterns = [
     path("", include(router.urls)),
+    path("posts/", AllPostViewSet.as_view({"get": "get_all_posts"})),
 ]
 
-urlpatterns = format_suffix_patterns(urlpatterns)

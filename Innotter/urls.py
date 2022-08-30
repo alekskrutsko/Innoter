@@ -7,4 +7,5 @@ urlpatterns = [
     path("api/", include("apps.page.urls", namespace="page")),
     path("api/", include("apps.tag.urls", namespace="tag")),
     path("api/", include("apps.post.urls", namespace="post")),
+    path("api/", include("apps.like.urls", namespace="likes")),
 ]

@@ -10,12 +10,10 @@ class Page(models.Model):
     description = models.TextField()
     tags = models.ManyToManyField("tag.Tag", related_name="pages")
 
-    owner = models.ForeignKey(
-        "user.User", on_delete=models.CASCADE, related_name="pages"
-    )
+    owner = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name="pages")
     followers = models.ManyToManyField("user.User", related_name="follows")
 
-    image_url = models.URLField(null=True, blank=True)
+    image = models.URLField(null=True, blank=True)
 
     is_private = models.BooleanField(default=False)
     follow_requests = models.ManyToManyField("user.User", related_name="requests")

@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 
 import jwt
-from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db import models
 
-from Innotter import settings
+from innotter import settings
 
 
 class User(AbstractUser):

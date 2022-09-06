@@ -2,45 +2,40 @@ from datetime import datetime
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin
+from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from Innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 from apps.page.models import Page
-from apps.page.permissions import (
-    IsAdminOrModerator,
-    IsPageOwner,
-    IsPrivatePage,
-    IsBlockedPage,
-)
+from apps.page.permissions import IsAdminOrModerator, IsBlockedPage, IsPageOwner, IsPrivatePage
 from apps.page.serializers import (
-    UserPageSerializer,
     AdminOrModerPageSerializer,
+    FollowerSerializer,
     FollowersListSerializer,
     PageListSerializer,
-    FollowerSerializer,
+    UserPageSerializer,
 )
 from apps.page.services import (
-    time_converter,
+    accept_all_follow_requests,
+    accept_follow_request,
+    add_tag_to_page,
+    deny_all_follow_requests,
+    deny_follow_request,
+    follow_page,
+    get_blocked_pages,
+    get_page_follow_requests,
+    get_page_followers,
+    get_page_tags,
+    get_unblocked_pages,
+    remove_tag_from_page,
     set_to_private,
     set_to_public,
-    get_blocked_pages,
-    get_page_followers,
-    get_unblocked_pages,
-    get_page_follow_requests,
-    accept_follow_request,
+    time_converter,
     unfollow_page,
-    follow_page,
-    accept_all_follow_requests,
-    deny_all_follow_requests,
-    get_page_tags,
-    add_tag_to_page,
-    remove_tag_from_page,
-    deny_follow_request,
 )
-from apps.tag.serializers import TagSerializer, TagPageSerializer
+from apps.tag.serializers import TagPageSerializer, TagSerializer
+from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 
 
 class PagesListViewSet(GetPermissionsMixin, ModelViewSet):
@@ -51,12 +46,12 @@ class PagesListViewSet(GetPermissionsMixin, ModelViewSet):
         "retrieve": (
             IsAuthenticated,
             (~IsPrivatePage | IsPageOwner | IsAdminOrModerator),
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "update": (
             IsAuthenticated,
             IsPageOwner,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "destroy": (
             IsAuthenticated,
@@ -141,14 +136,10 @@ class PagesListViewSet(GetPermissionsMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="follow")
     def follow(self, request, pk=None):
-        is_private, page_owner_id, is_follower = follow_page(
-            user=self.request.user, page_pk=pk
-        )
+        is_private, page_owner_id, is_follower = follow_page(user=self.request.user, page_pk=pk)
         if not is_private:
             return Response(
-                {
-                    "detail": "You have subscribed to the page or you are already a subscriber."
-                },
+                {"detail": "You have subscribed to the page or you are already a subscriber."},
                 status=status.HTTP_200_OK,
             )
         return Response(
@@ -160,9 +151,7 @@ class PagesListViewSet(GetPermissionsMixin, ModelViewSet):
     def unfollow(self, request, pk=None):
         unfollow_page(user=self.request.user, page_pk=pk)
         return Response(
-            {
-                "detail": "You have unsubscribed from the page or have already been unsubscribed."
-            },
+            {"detail": "You have unsubscribed from the page or have already been unsubscribed."},
             status=status.HTTP_200_OK,
         )
 
@@ -181,6 +170,7 @@ class PagesListViewSet(GetPermissionsMixin, ModelViewSet):
 class CurrentUserPagesViewSet(
     GetSerializerMixin,
     GetPermissionsMixin,
+    CreateModelMixin,
     RetrieveModelMixin,
     UpdateModelMixin,
     ListModelMixin,
@@ -191,12 +181,12 @@ class CurrentUserPagesViewSet(
         "retrieve": (
             IsAuthenticated,
             (~IsPrivatePage | IsPageOwner | IsAdminOrModerator),
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "update": (
             IsAuthenticated,
             IsPageOwner,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "destroy": (
             IsAuthenticated,
@@ -205,22 +195,22 @@ class CurrentUserPagesViewSet(
         ),
         "list": (
             IsAuthenticated,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "set_private": (
             IsAuthenticated,
             IsPageOwner,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "set_public": (
             IsAuthenticated,
             IsPageOwner,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "follow_requests": (IsAuthenticated, (IsPageOwner | IsAdminOrModerator)),
         "followers": (
             IsAuthenticated,
-            ~IsBlockedPage,
+            IsBlockedPage,
             (IsPageOwner | IsAdminOrModerator),
         ),
     }
@@ -261,9 +251,7 @@ class CurrentUserPagesViewSet(
         email = serializer.validated_data["email"]
         accept_follow_request(follower_email=email, page_pk=pk)
         return Response(
-            {
-                "detail": "You have successfully accepted user to followers or user is already your follower."
-            },
+            {"detail": "You have successfully accepted user to followers or user is already your follower."},
             status=status.HTTP_200_OK,
         )
 
@@ -274,9 +262,7 @@ class CurrentUserPagesViewSet(
         email = serializer.validated_data["email"]
         deny_follow_request(follower_email=email, page_pk=pk)
         return Response(
-            {
-                "detail": "You have successfully removed user from followers or user is already removed."
-            },
+            {"detail": "You have successfully removed user from followers or user is already removed."},
             status=status.HTTP_200_OK,
         )
 
@@ -310,9 +296,7 @@ class CurrentUserPagesViewSet(
         tag_name = serializer.validated_data["name"]
         add_tag_to_page(tag_name=tag_name, page_pk=pk)
         return Response(
-            {
-                "detail": "You have successfully added tag to page or it's already added."
-            },
+            {"detail": "You have successfully added tag to page or it's already added."},
             status=status.HTTP_200_OK,
         )
 
@@ -323,9 +307,7 @@ class CurrentUserPagesViewSet(
         tag_name = serializer.validated_data["name"]
         remove_tag_from_page(tag_name=tag_name, page_pk=pk)
         return Response(
-            {
-                "detail": "You have successfully removed tag from page or it's already removed."
-            },
+            {"detail": "You have successfully removed tag from page or it's already removed."},
             status=status.HTTP_200_OK,
         )
 

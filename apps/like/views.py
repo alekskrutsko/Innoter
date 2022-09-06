@@ -1,22 +1,15 @@
-from django.shortcuts import render
-from rest_framework.mixins import (
-    CreateModelMixin,
-    RetrieveModelMixin,
-    UpdateModelMixin,
-    DestroyModelMixin,
-    ListModelMixin,
-)
+from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 
-from Innotter.basic_mixin import GetSerializerMixin, GetPermissionsMixin
 from apps.like.models import Like
-from apps.like.permissions import IsBlockedPage, IsPublicPage, IsOwner
+from apps.like.permissions import IsBlockedPage, IsOwner, IsPublicPage
 from apps.like.serializers import CreateLikeSerializer, LikeSerializer
 from apps.like.services import create_like, delete_like
 from apps.page.permissions import IsAdminOrModerator
 from apps.post.models import Post
 from apps.user.models import User
+from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 
 
 class LikeViewSet(
@@ -76,8 +69,5 @@ class LikeViewSet(
     def get_queryset(self):
         if post := self.request.data.get("post"):
             return Like.objects.filter(post=Post.objects.get(pk=post))
-        elif (
-            self.request.user.role == (User.Roles.ADMIN or User.Roles.MODERATOR)
-            and not post
-        ):
+        elif self.request.user.role == (User.Roles.ADMIN or User.Roles.MODERATOR) and not post:
             return Like.objects.all()

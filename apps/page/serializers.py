@@ -7,15 +7,9 @@ from apps.user.models import User
 
 class UserPageSerializer(serializers.ModelSerializer):
     owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    followers = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="username"
-    )
-    follow_requests = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="username"
-    )
-    tags = serializers.SlugRelatedField(
-        many=True, slug_field="name", queryset=Tag.objects.all()
-    )
+    followers = serializers.SlugRelatedField(many=True, read_only=True, slug_field="username")
+    follow_requests = serializers.SlugRelatedField(many=True, read_only=True, slug_field="username")
+    tags = serializers.SlugRelatedField(many=True, slug_field="name", queryset=Tag.objects.all())
     is_private = serializers.BooleanField(required=True)
 
     # image_url = serializers.SerializerMethodField()
@@ -30,7 +24,7 @@ class UserPageSerializer(serializers.ModelSerializer):
             "tags",
             "owner",
             "followers",
-            "image_url",
+            "image",
             "is_private",
             "follow_requests",
         )
@@ -53,12 +47,8 @@ class AdminOrModerPageSerializer(serializers.ModelSerializer):
     """Serializer for separate page for admins only"""
 
     owner = serializers.ReadOnlyField(source="owner.username")
-    tags = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name", allow_null=True
-    )
-    followers = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="username", allow_null=True
-    )
+    tags = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name", allow_null=True)
+    followers = serializers.SlugRelatedField(many=True, read_only=True, slug_field="username", allow_null=True)
     unblock_date = serializers.DateTimeField(default=None)
 
     class Meta:
@@ -70,11 +60,11 @@ class AdminOrModerPageSerializer(serializers.ModelSerializer):
             "description",
             "tags",
             "owner",
-            "image_s3_path",
+            "image",
             "followers",
             "is_private",
             "unblock_date",
-            "is_blocked",
+            "is_permanently_blocked",
         )
         read_only_fields = (
             "id",
@@ -83,13 +73,15 @@ class AdminOrModerPageSerializer(serializers.ModelSerializer):
             "description",
             "tags",
             "owner",
-            "image_s3_path",
+            "image",
             "followers",
             "is_private",
         )
 
 
 class PageListSerializer(serializers.ModelSerializer):
+    is_permanently_blocked = serializers.BooleanField(default=False)
+
     class Meta:
         model = Page
         fields = (
@@ -98,7 +90,8 @@ class PageListSerializer(serializers.ModelSerializer):
             "uuid",
             "owner",
             "is_private",
-            "is_blocked",
+            "unblock_date",
+            "is_permanently_blocked",
         )
 
 

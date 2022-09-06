@@ -1,7 +1,8 @@
 import jwt
 from rest_framework import authentication, exceptions
-from Innotter import settings
+
 from apps.user.models import User
+from innotter import settings
 
 
 def expired_token(request):

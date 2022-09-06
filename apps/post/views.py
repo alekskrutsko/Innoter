@@ -1,20 +1,15 @@
-from django.shortcuts import render
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
-from Innotter.basic_mixin import GetPermissionsMixin
 from apps.page.permissions import IsAdminOrModerator
-from apps.post.permissions import IsOwner, IsBlockedPage, IsPublicPage
 from apps.post.models import Post
-from apps.post.serializers import (
-    PostSerializer,
-    ListPostSerializer,
-    UpdatePostSerializer,
-)
+from apps.post.permissions import IsBlockedPage, IsOwner, IsPublicPage
+from apps.post.serializers import ListPostSerializer, PostSerializer, UpdatePostSerializer
+from apps.post.services import send_email_to_followers
 
 
 class PostViewSet(ModelViewSet):
@@ -49,6 +44,13 @@ class PostViewSet(ModelViewSet):
             ~IsBlockedPage,
         ),
     }
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        send_email_to_followers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):
         if self.action == "update":

@@ -69,5 +69,5 @@ class LikeViewSet(
     def get_queryset(self):
         if post := self.request.data.get("post"):
             return Like.objects.filter(post=Post.objects.get(pk=post))
-        elif self.request.user.role == (User.Roles.ADMIN or User.Roles.MODERATOR) and not post:
+        elif self.request.user.role in (User.Roles.ADMIN, User.Roles.MODERATOR) and not post:
             return Like.objects.all()

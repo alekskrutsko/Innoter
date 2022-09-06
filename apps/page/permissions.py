@@ -5,7 +5,7 @@ from apps.user.models import User
 
 class IsAdminOrModerator(BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == User.Roles.ADMIN or request.user.role == User.Roles.MODERATOR
+        return request.user.role in (User.Roles.ADMIN, User.Roles.MODERATOR)
 
 
 class IsPageOwner(BasePermission):
@@ -20,4 +20,4 @@ class IsPrivatePage(BasePermission):
 
 class IsBlockedPage(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return not obj.is_permanently_blocked and obj.is_temporary_blocked()
+        return not (obj.is_permanently_blocked and obj.is_temporary_blocked())

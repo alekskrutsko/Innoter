@@ -335,8 +335,9 @@ class CurrentUserPagesViewSet(
     def set_avatar(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        page_id = serializer.validated_data["id"]
-        image = serializer.validated_data["image"]
+        data = serializer.validated_data
+        page_id = data.get('id')
+        image = data.get('image')
         serializer.validated_data["image"] = upload_image_to_s3(file_path=image, page_id=page_id)
         serializer.save()
 

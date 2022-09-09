@@ -143,7 +143,19 @@ class UserMixin(
     def block(self, request, *args, **kwargs):
         user = User.objects.get(pk=kwargs.get("pk", None))
 
-        user.is_blocked = not user.is_blocked
+        user.is_blocked = True
+        user.save()
+
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=("put",),
+    )
+    def unblock(self, request, *args, **kwargs):
+        user = User.objects.get(pk=kwargs.get("pk", None))
+
+        user.is_blocked = False
         user.save()
 
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)

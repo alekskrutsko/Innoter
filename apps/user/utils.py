@@ -7,9 +7,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.page.permissions import IsAdminOrModerator
 from apps.user.models import User
 from apps.user.permissions import IsAdmin
 from apps.user.serializers import UserLoginSerializer, UserRegistrationSerializer, UserSerializer
+from apps.user.services import upload_photo_to_s3
 from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 
 
@@ -29,8 +31,6 @@ class UserMixin(
         "list": UserSerializer,
         "register": UserRegistrationSerializer,
         "login": UserLoginSerializer,
-        "update_me": UserSerializer,
-        "me": UserSerializer,
         "block": UserSerializer,
         "unblock": UserSerializer,
     }
@@ -58,21 +58,27 @@ class UserMixin(
         ),
         "register": (AllowAny,),
         "login": (AllowAny,),
+        "block": (
+            IsAuthenticated,
+            IsAdminOrModerator,
+        ),
     }
 
-    def retrieve(self, request, *args, **kwargs):
-        if User.objects.filter(pk=kwargs["pk"]).exists():
-            return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(User.objects.get(pk=kwargs["pk"]))
-
-        access_token = request.COOKIES["access_token"]
-        response_dict = {"access_token": access_token}
-        response_dict.update(serializer.data)
-        response = Response(response_dict, status=status.HTTP_200_OK)
-        response.set_cookie("access_token", access_token)
-
-        return response
+    # def retrieve(self, request, *args, **kwargs):
+    #     if User.objects.filter(pk=kwargs["pk"]).exists():
+    #         return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
+    #
+    #     serializer = self.get_serializer(User.objects.get(pk=kwargs["pk"]))
+    #
+    #     image_s3_path = serializer.validated_data.get('image_s3_path')
+    #
+    #     if image_s3_path:
+    #         serialized_data = serializer.data
+    #         serialized_data["image_s3_path"] = upload_photo_to_s3(
+    #             file_path=image_s3_path, user=self.request.user
+    #         )
+    #         return Response(serialized_data)
+    #     return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
         if not User.objects.filter(pk=kwargs["pk"]).exists():
@@ -88,6 +94,9 @@ class UserMixin(
             partial=True,
         )
         serializer.is_valid(raise_exception=True)
+        serializer.validated_data['image_s3_path'] = upload_photo_to_s3(
+            file_path=serializer.validated_data.get('image_s3_path'), user=self.request.user
+        )
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -113,24 +122,7 @@ class UserMixin(
         serializer = self.get_serializer(data=user)
         serializer.is_valid(raise_exception=True)
 
-        response = Response(serializer.data, status=status.HTTP_200_OK)
-
-        response.set_cookie(
-            "access_token",
-            serializer.data.get(
-                "access_token",
-            ),
-            httponly=True,
-        )
-        response.set_cookie(
-            "refresh_token",
-            serializer.data.get(
-                "refresh_token",
-            ),
-            httponly=True,
-        )
-
-        return response
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=("post",))
     def register(self, request):
@@ -143,3 +135,29 @@ class UserMixin(
         serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
+        methods=("put",),
+    )
+    def block(self, request, *args, **kwargs):
+        user = User.objects.get(pk=kwargs.get("pk", None))
+
+        user.is_blocked = not user.is_blocked
+        user.save()
+
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=("put",),
+    )
+    def set_avatar(self, request):
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.validated_data['image_s3_path'] = upload_photo_to_s3(
+            file_path=serializer.validated_data.get('image_s3_path'), user=self.request.user
+        )
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

@@ -52,9 +52,7 @@ class UserLoginSerializer(serializers.Serializer):
         user = authenticate(username=email, password=password)
 
         if not user:
-            raise serializers.ValidationError(
-                "A user with this email and password was not found."
-            )
+            raise serializers.ValidationError("A user with this email and password was not found.")
 
         if not user.is_active:
             raise serializers.ValidationError("This user has been blocked.")
@@ -69,9 +67,6 @@ class UserLoginSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(max_length=128, min_length=8, write_only=True)
-
-    pages = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-    follows = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = User

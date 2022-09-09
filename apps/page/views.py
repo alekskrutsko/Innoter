@@ -33,6 +33,7 @@ from apps.page.services import (
     set_to_public,
     time_converter,
     unfollow_page,
+    upload_image_to_s3,
 )
 from apps.tag.serializers import TagPageSerializer, TagSerializer
 from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
@@ -230,6 +231,12 @@ class CurrentUserPagesViewSet(
         "set_public": PageListSerializer,
     }
 
+    def perform_update(self, serializer):
+        image = serializer.validated_data["image"]
+        page_id = serializer.validated_data["id"]
+        serializer.validated_data["image"] = upload_image_to_s3(file_path=image, page_id=page_id)
+        serializer.save()
+
     @action(detail=True, methods=["get"], url_path="followers")
     def followers(self, request, pk=None):
         all_page_followers = get_page_followers(page_pk=pk)
@@ -321,7 +328,21 @@ class CurrentUserPagesViewSet(
         data, status = set_to_public(request, pk)
         return Response(data=data, status=status)
 
+    @action(
+        detail=True,
+        methods=("put",),
+    )
+    def set_avatar(self, request):
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        page_id = serializer.validated_data["id"]
+        image = serializer.validated_data["image"]
+        serializer.validated_data["image"] = upload_image_to_s3(file_path=image, page_id=page_id)
+        serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     def get_queryset(self):
         if self.request.user.role in ("admin", "moderator"):
             return Page.objects.all().order_by("id")
-        return get_unblocked_pages(is_owner_page=False)
+        return get_unblocked_pages()

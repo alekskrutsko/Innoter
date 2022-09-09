@@ -1,13 +1,15 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from apps.page.models import Page
 from apps.tag.models import Tag
 from apps.user.models import User
+from apps.user.services import generate_file_name, get_presigned_url, is_allowed_file_extension
 
 
 def time_converter(time: list):
@@ -125,3 +127,14 @@ def remove_tag_from_page(tag_name: str, page_pk: int) -> None:
     page = get_object_or_404(Page, pk=page_pk)
     tag = get_object_or_404(Tag, name=tag_name)
     page.tags.remove(tag)
+
+
+def upload_image_to_s3(file_path: str, page_id: int) -> str:
+    if not is_allowed_file_extension(file_path=file_path):
+        raise ValidationError()
+
+    page = get_object_or_404(Page, pk=page_id)
+    key = generate_file_name(file_path=file_path, key=page.uuid, is_user_image=True)
+    presigned_url = get_presigned_url(key=key)
+
+    return presigned_url

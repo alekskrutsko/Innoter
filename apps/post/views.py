@@ -10,9 +10,10 @@ from apps.post.models import Post
 from apps.post.permissions import IsBlockedPage, IsOwner, IsPublicPage
 from apps.post.serializers import ListPostSerializer, PostSerializer, UpdatePostSerializer
 from apps.post.services import send_email_to_followers
+from innotter.basic_mixin import GetPermissionsMixin
 
 
-class PostViewSet(ModelViewSet):
+class PostViewSet(GetPermissionsMixin, ModelViewSet):
     detail_serializer_classes = {
         "update": UpdatePostSerializer,
     }
@@ -32,7 +33,7 @@ class PostViewSet(ModelViewSet):
             ~IsBlockedPage,
             (IsOwner | IsAdminOrModerator),
         ),
-        "create": (IsAuthenticated, IsOwner, ~IsBlockedPage),
+        "create": (IsAuthenticated,),
         "list": (
             IsAuthenticated,
             (IsPublicPage | IsOwner | IsAdminOrModerator),
@@ -49,7 +50,7 @@ class PostViewSet(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        send_email_to_followers(serializer.data)
+        send_email_to_followers(serializer.data, self.kwargs.get('page_pk'))
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def get_serializer_class(self):

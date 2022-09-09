@@ -8,7 +8,7 @@ from apps.post.views import AllPostViewSet, PostViewSet
 router = SimpleRouter()
 router.register("pages", PagesListViewSet)
 
-post_router = routers.NestedSimpleRouter(router, r"pages", lookup="pages")
+post_router = routers.NestedSimpleRouter(router, r"pages", lookup="page")
 
 post_router.register(r"posts", PostViewSet, basename="page")
 

@@ -14,6 +14,7 @@ from apps.page.serializers import (
     FollowerSerializer,
     FollowersListSerializer,
     PageListSerializer,
+    PageSetAvatarSerializer,
     UserPageSerializer,
 )
 from apps.page.services import (
@@ -208,6 +209,11 @@ class CurrentUserPagesViewSet(
             IsPageOwner,
             IsBlockedPage,
         ),
+        "set_avatar": (
+            IsAuthenticated,
+            IsPageOwner,
+            IsBlockedPage,
+        ),
         "follow_requests": (IsAuthenticated, (IsPageOwner | IsAdminOrModerator)),
         "followers": (
             IsAuthenticated,
@@ -219,6 +225,9 @@ class CurrentUserPagesViewSet(
     serializer_classes = {
         "list": PageListSerializer,
         "create": PageListSerializer,
+        "retrieve": PageListSerializer,
+        "update": PageListSerializer,
+        "destroy": PageListSerializer,
         "follow_requests": FollowersListSerializer,
         "all_follow_requests": FollowersListSerializer,
         "followers": FollowersListSerializer,
@@ -229,13 +238,8 @@ class CurrentUserPagesViewSet(
         "remove_tag_from_page": TagPageSerializer,
         "set_private": PageListSerializer,
         "set_public": PageListSerializer,
+        "set_avatar": PageSetAvatarSerializer,
     }
-
-    def perform_update(self, serializer):
-        image = serializer.validated_data["image"]
-        page_id = serializer.validated_data["id"]
-        serializer.validated_data["image"] = upload_image_to_s3(file_path=image, page_id=page_id)
-        serializer.save()
 
     @action(detail=True, methods=["get"], url_path="followers")
     def followers(self, request, pk=None):
@@ -332,16 +336,12 @@ class CurrentUserPagesViewSet(
         detail=True,
         methods=("put",),
     )
-    def set_avatar(self, request):
+    def set_avatar(self, request, pk):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data
-        page_id = data.get('id')
-        image = data.get('image')
-        serializer.validated_data["image"] = upload_image_to_s3(file_path=image, page_id=page_id)
-        serializer.save()
+        image_s3_path = upload_image_to_s3(request, pk)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(image_s3_path, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         if self.request.user.role in ("admin", "moderator"):

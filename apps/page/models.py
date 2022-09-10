@@ -8,7 +8,7 @@ class Page(models.Model):
     name = models.CharField(max_length=80)
     uuid = models.CharField(max_length=30, unique=True)
     description = models.TextField()
-    tags = models.ManyToManyField("tag.Tag", related_name="pages")
+    tags = models.ManyToManyField("tag.Tag", related_name="pages", blank=True)
 
     owner = models.ForeignKey("user.User", on_delete=models.CASCADE, related_name="pages")
     followers = models.ManyToManyField("user.User", related_name="follows")

@@ -107,3 +107,7 @@ class UsernameSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "username": {"read_only": True},
         }
+
+
+class UserUploadAvatarSerializer(serializers.Serializer):
+    img = serializers.FileField()

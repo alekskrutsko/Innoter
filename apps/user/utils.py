@@ -9,8 +9,13 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.page.permissions import IsAdminOrModerator
 from apps.user.models import User
-from apps.user.permissions import IsAdmin
-from apps.user.serializers import UserLoginSerializer, UserRegistrationSerializer, UserSerializer
+from apps.user.permissions import IsAdmin, IsOwner
+from apps.user.serializers import (
+    UserLoginSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
+    UserUploadAvatarSerializer,
+)
 from apps.user.services import upload_photo_to_s3
 from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 
@@ -33,20 +38,21 @@ class UserMixin(
         "login": UserLoginSerializer,
         "block": UserSerializer,
         "unblock": UserSerializer,
+        "set_avatar": UserUploadAvatarSerializer,
     }
 
     permission_classes = {
         "update": (
             IsAuthenticated,
-            IsAdmin,
+            (IsAdmin | IsOwner),
         ),
         "partial_update": (
             IsAuthenticated,
-            IsAdmin,
+            (IsAdmin | IsOwner),
         ),
         "retrieve": (
             IsAuthenticated,
-            IsAdmin,
+            (IsAdmin | IsOwner),
         ),
         "list": (
             IsAuthenticated,
@@ -54,7 +60,7 @@ class UserMixin(
         ),
         "destroy": (
             IsAuthenticated,
-            IsAdmin,
+            (IsAdmin | IsOwner),
         ),
         "register": (AllowAny,),
         "login": (AllowAny,),
@@ -62,44 +68,11 @@ class UserMixin(
             IsAuthenticated,
             IsAdminOrModerator,
         ),
+        "set_avatar": (
+            IsAuthenticated,
+            IsOwner,
+        ),
     }
-
-    # def retrieve(self, request, *args, **kwargs):
-    #     if User.objects.filter(pk=kwargs["pk"]).exists():
-    #         return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
-    #
-    #     serializer = self.get_serializer(User.objects.get(pk=kwargs["pk"]))
-    #
-    #     image_s3_path = serializer.validated_data.get('image_s3_path')
-    #
-    #     if image_s3_path:
-    #         serialized_data = serializer.data
-    #         serialized_data["image_s3_path"] = upload_photo_to_s3(
-    #             file_path=image_s3_path, user=self.request.user
-    #         )
-    #         return Response(serialized_data)
-    #     return Response(serializer.data)
-
-    def update(self, request, *args, **kwargs):
-        if not User.objects.filter(pk=kwargs["pk"]).exists():
-            return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer_data = request.data.get(
-            "user",
-        )
-
-        serializer = self.get_serializer(
-            User.objects.get(pk=kwargs.get("pk")),
-            data=serializer_data,
-            partial=True,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.validated_data['image_s3_path'] = upload_photo_to_s3(
-            file_path=serializer.validated_data.get('image_s3_path'), user=self.request.user
-        )
-        serializer.save()
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=False,
@@ -167,9 +140,6 @@ class UserMixin(
     def set_avatar(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['image_s3_path'] = upload_photo_to_s3(
-            file_path=serializer.validated_data.get('image_s3_path'), user=self.request.user
-        )
-        serializer.save()
+        image_s3_path = upload_photo_to_s3(request)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(image_s3_path, status=status.HTTP_200_OK)

@@ -95,6 +95,10 @@ class PageListSerializer(serializers.ModelSerializer):
         )
 
 
+class PageSetAvatarSerializer(serializers.Serializer):
+    img = serializers.FileField()
+
+
 class FollowersListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User

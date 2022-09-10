@@ -1,25 +1,33 @@
 import boto3
+from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
 
 from apps.user.models import User
 from innotter import settings
 
 
-def upload_photo_to_s3(file_path: str, user: User) -> str:
-    if not is_allowed_file_extension(file_path=file_path):
+def upload_photo_to_s3(request):
+    user = request.user
+    image = request.FILES["image"]
+    if not is_allowed_file_extension(file_path=image.name):
         raise ValidationError()
 
-    key = generate_file_name(file_path=file_path, key=user.username, is_user_image=True)
-    presigned_url = get_presigned_url(key=key)
+    key = generate_file_name(file_path=image.name, key=user.username, is_user_image=True)
+
+    presigned_url = get_presigned_url(image=image, key=key)
+
+    us = get_object_or_404(User, pk=user.pk)
+    us.image_s3_path = presigned_url
+    us.save()
 
     return presigned_url
 
 
-def get_presigned_url(key: str) -> str:
+def get_presigned_url(image, key: str) -> str:
     s3_client = boto3.client(
         "s3", aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
     )
-
+    s3_client.put_object(Body=image, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)
     presigned_url = s3_client.generate_presigned_url(
         'get_object', Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': key}, ExpiresIn=3600
     )

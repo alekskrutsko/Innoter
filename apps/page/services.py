@@ -129,12 +129,17 @@ def remove_tag_from_page(tag_name: str, page_pk: int) -> None:
     page.tags.remove(tag)
 
 
-def upload_image_to_s3(file_path: str, page_id: int) -> str:
-    if not is_allowed_file_extension(file_path=file_path):
+def upload_image_to_s3(request, pk):
+    image = request.FILES["image"]
+    if not is_allowed_file_extension(file_path=image.name):
         raise ValidationError()
 
-    page = get_object_or_404(Page, pk=page_id)
-    key = generate_file_name(file_path=file_path, key=page.uuid, is_user_image=True)
-    presigned_url = get_presigned_url(key=key)
+    page = get_object_or_404(Page, pk=pk)
+    key = generate_file_name(file_path=image.name, key=page.uuid, is_user_image=False)
+
+    presigned_url = get_presigned_url(image=image, key=key)
+
+    page.image = presigned_url
+    page.save()
 
     return presigned_url

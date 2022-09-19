@@ -10,5 +10,3 @@ RUN poetry config virtualenvs.create false && poetry install
 
 COPY . /app/
 EXPOSE 8000
-RUN chmod +x ./django-entrypoint.sh
-CMD python manage.py runserver

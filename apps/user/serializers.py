@@ -100,14 +100,5 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 
-class UsernameSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["username"]
-        extra_kwargs = {
-            "username": {"read_only": True},
-        }
-
-
 class UserUploadAvatarSerializer(serializers.Serializer):
     img = serializers.FileField()

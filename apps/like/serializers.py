@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from apps.like.models import Like
-from apps.user.serializers import UsernameSerializer
 
 
 class CreateLikeSerializer(serializers.ModelSerializer):

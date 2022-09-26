@@ -2,7 +2,13 @@ from datetime import datetime
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin
+from rest_framework.mixins import (
+    CreateModelMixin,
+    DestroyModelMixin,
+    ListModelMixin,
+    RetrieveModelMixin,
+    UpdateModelMixin,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -36,6 +42,7 @@ from apps.page.services import (
     unfollow_page,
     upload_image_to_s3,
 )
+from apps.producer import publish
 from apps.tag.serializers import TagPageSerializer, TagSerializer
 from innotter.basic_mixin import GetPermissionsMixin, GetSerializerMixin
 
@@ -175,6 +182,7 @@ class CurrentUserPagesViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
     UpdateModelMixin,
+    DestroyModelMixin,
     ListModelMixin,
     GenericViewSet,
 ):
@@ -241,6 +249,17 @@ class CurrentUserPagesViewSet(
         "set_avatar": PageSetAvatarSerializer,
     }
 
+    def update(self, request, *args, **kwargs):
+        response = super().update(request, *args, **kwargs)
+        publish("page_updated", response.data)
+        return response
+
+    def destroy(self, request, *args, **kwargs):
+        pk = kwargs.get("pk")
+        response = super().destroy(request, *args, **kwargs)
+        publish("page_deleted", {"pk": pk})
+        return response
+
     @action(detail=True, methods=["get"], url_path="followers")
     def followers(self, request, pk=None):
         all_page_followers = get_page_followers(page_pk=pk)
@@ -261,6 +280,7 @@ class CurrentUserPagesViewSet(
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
         accept_follow_request(follower_email=email, page_pk=pk)
+        publish("follower_added", pk)
         return Response(
             {"detail": "You have successfully accepted user to followers or user is already your follower."},
             status=status.HTTP_200_OK,
@@ -280,6 +300,7 @@ class CurrentUserPagesViewSet(
     @action(detail=True, methods=["post"], url_path="accept-all")
     def accept_all_follow_requests(self, request, pk=None):
         accept_all_follow_requests(page_pk=pk)
+        publish("follower_added", pk)
         return Response(
             {"detail": "You have successfully accepted all follow requests."},
             status=status.HTTP_200_OK,

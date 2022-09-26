@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.page.models import Page
+from apps.producer import publish
 from apps.tag.models import Tag
 from apps.user.models import User
 
@@ -93,6 +94,15 @@ class PageListSerializer(serializers.ModelSerializer):
             "unblock_date",
             "is_permanently_blocked",
         )
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        validated_data["owner"] = request.user
+        page = Page.objects.create(**validated_data)
+
+        publish("page_created", PageListSerializer(page).data)
+
+        return page
 
 
 class PageSetAvatarSerializer(serializers.Serializer):

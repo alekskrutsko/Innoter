@@ -101,4 +101,4 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class UserUploadAvatarSerializer(serializers.Serializer):
-    img = serializers.FileField()
+    image = serializers.FileField()

@@ -2,8 +2,8 @@ from pydantic import BaseModel
 
 
 class Page(BaseModel):
-    id: str
-    owner: str
+    id: int
+    owner: int
     name: str
     description: str = ""
     amount_of_posts: int = 0

@@ -90,6 +90,7 @@ class PageListSerializer(serializers.ModelSerializer):
             "name",
             "uuid",
             "owner",
+            "description",
             "is_private",
             "unblock_date",
             "is_permanently_blocked",
@@ -106,7 +107,7 @@ class PageListSerializer(serializers.ModelSerializer):
 
 
 class PageSetAvatarSerializer(serializers.Serializer):
-    img = serializers.FileField()
+    image = serializers.FileField()
 
 
 class FollowersListSerializer(serializers.ModelSerializer):

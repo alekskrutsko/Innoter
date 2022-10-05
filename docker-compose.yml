@@ -70,7 +70,7 @@ services:
     build: ./microservice
     volumes:
       - ./microservice:/app/microservice
-    command:  bash -c "cd microservice && python consumer.py"
+    command:  bash -c "cd microservice && python3 consumer.py"
     depends_on:
       - rabbitmq
 

@@ -26,7 +26,7 @@ class LikeViewSet(
     permission_classes = {
         "create": (
             IsAuthenticated,
-            (IsPublicPage | IsAdminOrModerator),
+            (IsPublicPage | IsOwner | IsAdminOrModerator),
             IsBlockedPage,
         ),
         "retrieve": (
@@ -36,7 +36,7 @@ class LikeViewSet(
         ),
         "list": (
             IsAuthenticated,
-            IsAdminOrModerator,
+            (IsOwner | IsAdminOrModerator),
         ),
         "destroy": (
             IsAuthenticated,

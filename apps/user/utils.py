@@ -68,11 +68,29 @@ class UserMixin(
             IsAuthenticated,
             IsAdminOrModerator,
         ),
+        "unblock": (
+            IsAuthenticated,
+            IsAdminOrModerator,
+        ),
         "set_avatar": (
             IsAuthenticated,
             IsOwner,
         ),
     }
+
+    def retrieve(self, request, *args, **kwargs):
+        if not User.objects.filter(pk=kwargs["pk"]).exists():
+            return Response({"detail": "Not Found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(User.objects.get(pk=kwargs["pk"]))
+
+        access_token = request.COOKIES["access_token"]
+        response_dict = {"access_token": access_token}
+        response_dict.update(serializer.data)
+        response = Response(response_dict, status=status.HTTP_200_OK)
+        response.set_cookie("access_token", access_token)
+
+        return response
 
     @action(
         detail=False,
@@ -95,7 +113,24 @@ class UserMixin(
         serializer = self.get_serializer(data=user)
         serializer.is_valid(raise_exception=True)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        response = Response(serializer.data, status=status.HTTP_200_OK)
+
+        response.set_cookie(
+            "access_token",
+            serializer.data.get(
+                "access_token",
+            ),
+            httponly=True,
+        )
+        response.set_cookie(
+            "refresh_token",
+            serializer.data.get(
+                "refresh_token",
+            ),
+            httponly=True,
+        )
+
+        return response
 
     @action(detail=False, methods=("post",))
     def register(self, request):
@@ -134,7 +169,7 @@ class UserMixin(
         return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
     @action(
-        detail=True,
+        detail=False,
         methods=("put",),
     )
     def set_avatar(self, request):

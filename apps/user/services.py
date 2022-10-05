@@ -25,7 +25,10 @@ def upload_photo_to_s3(request):
 
 def get_presigned_url(image, key: str) -> str:
     s3_client = boto3.client(
-        "s3", aws_access_key_id=settings.AWS_ACCESS_KEY_ID, aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY
+        "s3",
+        endpoint_url=settings.AWS_URL,
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     )
     s3_client.put_object(Body=image, Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=key)
     presigned_url = s3_client.generate_presigned_url(

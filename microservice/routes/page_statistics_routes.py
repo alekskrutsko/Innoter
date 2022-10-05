@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/pages/statistics/", response_description="Pages statistics retrieved")
 async def get_pages_statistics_data(user_id: int = Depends(has_access)):
-    pages_statistics, error_status = await retrieve_pages_statistics(user_id)
+    pages_statistics = await retrieve_pages_statistics(user_id)
     if pages_statistics:
         return response_model(pages_statistics, "Pages statistics data retrieved successfully")
     return response_model(pages_statistics, "Empty list returned")

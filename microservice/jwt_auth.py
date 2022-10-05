@@ -13,7 +13,7 @@ async def has_access(credentials: HTTPAuthorizationCredentials = Depends(securit
     token = credentials.credentials
 
     try:
-        payload = jwt.decode(token, key=settings.SECRET_KEY)
+        payload = jwt.decode(token, key=settings.SECRET_KEY, algorithms="HS256")
     except jwt.DecodeError as e:
         raise HTTPException(status_code=401, detail=str(e))
 

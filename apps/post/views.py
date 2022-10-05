@@ -23,27 +23,27 @@ class PostViewSet(GetPermissionsMixin, ModelViewSet):
         "partial_update": (
             IsAuthenticated,
             IsOwner,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "update": (
             IsAuthenticated,
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "destroy": (
             IsAuthenticated,
-            ~IsBlockedPage,
+            IsBlockedPage,
             (IsOwner | IsAdminOrModerator),
         ),
-        "create": (IsAuthenticated, IsOwner, ~IsBlockedPage),
+        "create": (IsAuthenticated, IsOwner, IsBlockedPage),
         "list": (
             IsAuthenticated,
             (IsPublicPage | IsOwner | IsAdminOrModerator),
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
         "retrieve": (
             IsAuthenticated,
             (IsPublicPage | IsOwner | IsAdminOrModerator),
-            ~IsBlockedPage,
+            IsBlockedPage,
         ),
     }
 

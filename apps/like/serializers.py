@@ -16,7 +16,6 @@ class CreateLikeSerializer(serializers.ModelSerializer):
 
 
 class LikeSerializer(serializers.ModelSerializer):
-
     post = serializers.SlugRelatedField(slug_field="content", read_only=True)
 
     class Meta:

@@ -12,7 +12,7 @@ def upload_photo_to_s3(request):
     if not is_allowed_file_extension(file_path=image.name):
         raise ValidationError()
 
-    key = generate_file_name(file_path=image.name, key=user.username, is_user_image=True)
+    key = generate_file_name(file_path=image.name, key=user.email, is_user_image=True)
 
     presigned_url = get_presigned_url(image=image, key=key)
 

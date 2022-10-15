@@ -22,6 +22,7 @@ aio-pika = "^8.2.1"
 pytest-django = "^4.5.2"
 model-bakery = "^1.7.0"
 aioboto3 = "^10.1.0"
+pytest-mock = "^3.10.0"
 
 [tool.poetry.dev-dependencies]
 black = "^22.6.0"

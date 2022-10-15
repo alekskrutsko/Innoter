@@ -42,14 +42,15 @@ def set_to_public(request, pk):
 
 def get_unblocked_pages() -> Page:
     pages = Page.objects.filter(
-        Q(is_blocked=False),
-        Q(unblock_date__isnull=True) | Q(unblock_date__lt=datetime.now()),
+        Q(is_permanently_blocked=False) & (Q(unblock_date__isnull=True) | Q(unblock_date__lt=datetime.now())),
     ).order_by("id")
     return pages
 
 
 def get_blocked_pages() -> Page:
-    return Page.objects.filter(is_blocked=True).order_by("id")
+    return Page.objects.filter(
+        Q(is_permanently_blocked=True) | (Q(unblock_date__isnull=False) & Q(unblock_date__gt=datetime.now()))
+    ).order_by("id")
 
 
 def get_page_followers(page_pk: int) -> Page:
@@ -62,17 +63,18 @@ def get_page_follow_requests(page_pk: int) -> Response:
 
 def follow_page(user: User, page_pk: int) -> tuple:
     page = get_object_or_404(Page, pk=page_pk)
-    is_user_follower = page.followers.contains(user)
-    if page.is_private:
+    is_user_follower = page.followers.filter(id=user.pk).exists()
+    if page.is_private and not is_user_follower:
         page.follow_requests.add(user)
-        return True, page.owner.pk, page.followers.contains(user)
-    page.followers.add(user)
-    return False, page.owner.pk, is_user_follower
+        return True, is_user_follower
+    elif not is_user_follower:
+        page.followers.add(user)
+    return False, is_user_follower
 
 
 def unfollow_page(user: User, page_pk: int) -> tuple:
     page = get_object_or_404(Page, pk=page_pk)
-    is_user_follower = page.followers.contains(user)
+    is_user_follower = page.followers.filter(id=user.pk).exists()
     page.followers.remove(user)
     return page.owner.pk, is_user_follower
 
@@ -80,7 +82,7 @@ def unfollow_page(user: User, page_pk: int) -> tuple:
 def accept_follow_request(follower_email: str, page_pk: int) -> bool:
     page = get_object_or_404(Page, pk=page_pk)
     potential_follower = get_object_or_404(User, email=follower_email)
-    is_follow_request = page.follow_requests.contains(potential_follower)
+    is_follow_request = page.follow_requests.filter(pk=potential_follower.pk).exists()
     page.followers.add(potential_follower)
     page.follow_requests.remove(potential_follower)
     return is_follow_request

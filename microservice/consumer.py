@@ -45,7 +45,7 @@ async def consume(loop):
                             ),
                         case "follower":
                             await update_followers_counter(
-                                page_id=int(data),
+                                data=data,
                                 field=message.properties.content_type,
                             )
 

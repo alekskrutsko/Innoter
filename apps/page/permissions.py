@@ -20,4 +20,4 @@ class IsPrivatePage(BasePermission):
 
 class IsBlockedPage(BasePermission):
     def has_object_permission(self, request, view, obj):
-        return not (obj.is_permanently_blocked and obj.is_temporary_blocked())
+        return not obj.is_permanently_blocked and obj.is_temporary_blocked()

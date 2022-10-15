@@ -107,15 +107,17 @@ async def update_likes_counter(page_id: int, field):
             await update_page_statistics(page_id, 'amount_of_likes', False)
 
 
-async def update_followers_counter(page_id: int, field):
+async def update_followers_counter(data, field):
     match field:
         case "follower_added":
-            await update_page_statistics(page_id, 'amount_of_followers')
+            await update_page_statistics(int(data), 'amount_of_followers')
+        case "follower_added_all":
+            await update_page_statistics(int(data['page_id']), 'amount_of_followers', True, int(data["quantity"]))
         case "follower_deleted":
-            await update_page_statistics(page_id, 'amount_of_followers', False)
+            await update_page_statistics(int(data), 'amount_of_followers', False)
 
 
-async def update_page_statistics(page_id: int, value, increase=True):
+async def update_page_statistics(page_id: int, value, increase=True, quantity: int = 0):
     session = aioboto3.Session()
     async with session.resource(
         "dynamodb",
@@ -125,10 +127,14 @@ async def update_page_statistics(page_id: int, value, increase=True):
         aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
     ) as dynamo_resource:
         table = await dynamo_resource.Table(settings.AWS_DYNAMODB_TABLE_NAME)
+        if quantity == 0:
+            number = 1
+        else:
+            number = quantity
         await table.update_item(
             Key={'page_id': page_id},
             UpdateExpression=f"ADD counters.{value} :value",
-            ExpressionAttributeValues={":value": 1 if increase else -1},
+            ExpressionAttributeValues={":value": number if increase else -1},
         )
 
 

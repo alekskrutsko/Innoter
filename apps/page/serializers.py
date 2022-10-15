@@ -7,13 +7,11 @@ from apps.user.models import User
 
 
 class UserPageSerializer(serializers.ModelSerializer):
-    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    owner = serializers.ReadOnlyField(source="owner.username")
     followers = serializers.SlugRelatedField(many=True, read_only=True, slug_field="username")
     follow_requests = serializers.SlugRelatedField(many=True, read_only=True, slug_field="username")
     tags = serializers.SlugRelatedField(many=True, slug_field="name", queryset=Tag.objects.all())
     is_private = serializers.BooleanField(required=True)
-
-    # image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Page
@@ -31,17 +29,9 @@ class UserPageSerializer(serializers.ModelSerializer):
         )
 
         extra_kwargs = {
-            "owner": {"read_only": True},
             "followers": {"read_only": True},
             "follow_requests": {"read_only": True},
         }
-
-    # def get_image_url(self, obj):
-    #     try:
-    #         url = S3Client.create_presigned_url(object_name=obj.image)
-    #     except ParamValidationError:
-    #         url = ''
-    #     return url
 
 
 class AdminOrModerPageSerializer(serializers.ModelSerializer):
@@ -81,6 +71,7 @@ class AdminOrModerPageSerializer(serializers.ModelSerializer):
 
 
 class PageListSerializer(serializers.ModelSerializer):
+    owner = serializers.ReadOnlyField(source="owner.username")
     is_permanently_blocked = serializers.BooleanField(default=False)
 
     class Meta:
@@ -100,8 +91,10 @@ class PageListSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         validated_data["owner"] = request.user
         page = Page.objects.create(**validated_data)
+        data = PageListSerializer(page).data
+        data["owner"] = request.user.pk
 
-        publish("page_created", PageListSerializer(page).data)
+        publish("page_created", data)
 
         return page
 

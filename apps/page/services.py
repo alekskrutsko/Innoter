@@ -26,7 +26,12 @@ def time_converter(time: list):
 
 def set_to_private(request, pk):
     user = request.user
-    page = get_object_or_404(Page, pk=pk, owner=user, is_blocked=False)
+    page = get_object_or_404(
+        Page,
+        Q(is_permanently_blocked=False) & (Q(unblock_date__isnull=True) | Q(unblock_date__lt=datetime.now())),
+        pk=pk,
+        owner=user,
+    )
     page.is_private = True
     page.save()
     return True, status.HTTP_200_OK
@@ -34,7 +39,12 @@ def set_to_private(request, pk):
 
 def set_to_public(request, pk):
     user = request.user
-    page = get_object_or_404(Page, pk=pk, owner=user, is_blocked=False)
+    page = get_object_or_404(
+        Page,
+        Q(is_permanently_blocked=False) & (Q(unblock_date__isnull=True) | Q(unblock_date__lt=datetime.now())),
+        pk=pk,
+        owner=user,
+    )
     page.is_private = False
     page.save()
     return True, status.HTTP_200_OK

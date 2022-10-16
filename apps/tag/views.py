@@ -4,7 +4,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.page.permissions import IsAdminOrModerator
 from apps.tag.models import Tag
-from apps.tag.permissions import IsOwner, IsPublicPage
+from apps.tag.permissions import ReadOnly
 from apps.tag.serializers import TagSerializer
 from innotter.basic_mixin import GetPermissionsMixin
 
@@ -22,15 +22,19 @@ class TagViewSet(
     permission_classes = {
         "create": (
             IsAuthenticated,
-            (IsOwner | IsAdminOrModerator),
+            IsAdminOrModerator,
         ),
-        "retrieve": (IsAuthenticated, (IsPublicPage | IsOwner | IsAdminOrModerator)),
+        "update": (
+            IsAuthenticated,
+            IsAdminOrModerator,
+        ),
+        "retrieve": (IsAuthenticated, ReadOnly),
         "destroy": (
             IsAuthenticated,
-            (IsOwner | IsAdminOrModerator),
+            IsAdminOrModerator,
         ),
         "list": (
             IsAuthenticated,
-            (IsPublicPage | IsOwner | IsAdminOrModerator),
+            ReadOnly,
         ),
     }

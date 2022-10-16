@@ -256,6 +256,21 @@ class CurrentUserPagesViewSet(
             IsBlockedPage,
             (IsPageOwner | IsAdminOrModerator),
         ),
+        "tags": (
+            IsAuthenticated,
+            IsBlockedPage,
+            (IsPageOwner | IsAdminOrModerator),
+        ),
+        "add_tag_to_page": (
+            IsAuthenticated,
+            IsBlockedPage,
+            (IsPageOwner | IsAdminOrModerator),
+        ),
+        "remove_tag_from_page": (
+            IsAuthenticated,
+            IsBlockedPage,
+            (IsPageOwner | IsAdminOrModerator),
+        ),
     }
 
     serializer_classes = {
@@ -339,11 +354,10 @@ class CurrentUserPagesViewSet(
             status=status.HTTP_200_OK,
         )
 
-    @action(detail=True, methods=["get"], url_path="tags")
+    @action(detail=True, methods=["get"])
     def tags(self, request, pk=None):
         page_tags = get_page_tags(page_pk=pk)
         serializer = self.get_serializer(page_tags, many=True)
-        serializer.is_valid(raise_exception=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="add-tag")

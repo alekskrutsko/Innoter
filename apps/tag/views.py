@@ -1,6 +1,5 @@
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, ListModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import ModelViewSet
 
 from apps.page.permissions import IsAdminOrModerator
 from apps.tag.models import Tag
@@ -9,14 +8,7 @@ from apps.tag.serializers import TagSerializer
 from innotter.basic_mixin import GetPermissionsMixin
 
 
-class TagViewSet(
-    GetPermissionsMixin,
-    GenericViewSet,
-    ListModelMixin,
-    CreateModelMixin,
-    RetrieveModelMixin,
-    DestroyModelMixin,
-):
+class TagViewSet(GetPermissionsMixin, ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = {

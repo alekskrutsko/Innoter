@@ -21,8 +21,6 @@ class LikeViewSet(
     ListModelMixin,
     GenericViewSet,
 ):
-    queryset = Like.objects.all()
-
     permission_classes = {
         "create": (
             IsAuthenticated,

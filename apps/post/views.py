@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
 
+from apps.page.models import Page
 from apps.page.permissions import IsAdminOrModerator
 from apps.post.models import Post
 from apps.post.permissions import IsBlockedPage, IsOwner, IsPublicPage
@@ -18,16 +19,16 @@ class PostViewSet(GetPermissionsMixin, ModelViewSet):
     detail_serializer_classes = {
         "update": UpdatePostSerializer,
     }
-    queryset = Post.objects.all()
     permission_classes = {
         "partial_update": (
             IsAuthenticated,
-            IsOwner,
+            (IsOwner | IsAdminOrModerator),
             IsBlockedPage,
         ),
         "update": (
             IsAuthenticated,
             IsBlockedPage,
+            (IsOwner | IsAdminOrModerator),
         ),
         "destroy": (
             IsAuthenticated,
@@ -64,6 +65,9 @@ class PostViewSet(GetPermissionsMixin, ModelViewSet):
         if self.action == "update":
             return self.detail_serializer_classes.get(self.action)
         return PostSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(page=Page.objects.get(pk=self.kwargs.get('page_pk')))
 
 
 class AllPostViewSet(GenericViewSet, ListModelMixin):

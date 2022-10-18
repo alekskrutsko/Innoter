@@ -1,9 +1,27 @@
+from enum import Enum
+
 import aioboto3
 import botocore.exceptions
 from boto3.dynamodb.conditions import Attr, Key
 
 from microservice.models.page_statistics import Page
 from microservice.settings import settings
+
+
+class CommandTypes(str, Enum):
+    CREATE_PAGE = "page_created"
+    UPDATE_PAGE = "page_updated"
+    DELETE_PAGE = "page_deleted"
+
+    CREATE_POST = "post_created"
+    DELETE_POST = "post_deleted"
+
+    CREATE_LIKE = "like_created"
+    DELETE_LIKE = "like_deleted"
+
+    ADD_FOLLOWER = "follower_added"
+    DELETE_FOLLOWER = "follower_deleted"
+    ADD_ALL_FOLLOWERS = "follower_added_all"
 
 
 async def create_table():
@@ -32,11 +50,11 @@ async def create_table():
 
 async def page_statistics_data(content_type: str, data):
     match content_type:
-        case "page_created":
+        case CommandTypes.CREATE_PAGE:
             await create_new_page(Page.parse_obj(data))
-        case "page_updated":
+        case CommandTypes.UPDATE_PAGE:
             await update_page(Page.parse_obj(data))
-        case "page_deleted":
+        case CommandTypes.DELETE_PAGE:
             await delete_page(int(data))
 
 
@@ -93,27 +111,27 @@ async def delete_page(page_id):
 
 async def update_posts_counter(page_id: int, field):
     match field:
-        case "post_created":
+        case CommandTypes.CREATE_POST:
             await update_page_statistics(page_id, 'amount_of_posts')
-        case "post_deleted":
+        case CommandTypes.DELETE_POST:
             await update_page_statistics(page_id, 'amount_of_posts', False)
 
 
 async def update_likes_counter(page_id: int, field):
     match field:
-        case "like_created":
+        case CommandTypes.CREATE_LIKE:
             await update_page_statistics(page_id, 'amount_of_likes')
-        case "like_deleted":
+        case CommandTypes.DELETE_LIKE:
             await update_page_statistics(page_id, 'amount_of_likes', False)
 
 
 async def update_followers_counter(data, field):
     match field:
-        case "follower_added":
+        case CommandTypes.ADD_FOLLOWER:
             await update_page_statistics(int(data), 'amount_of_followers')
-        case "follower_added_all":
+        case CommandTypes.ADD_ALL_FOLLOWERS:
             await update_page_statistics(int(data['page_id']), 'amount_of_followers', True, int(data["quantity"]))
-        case "follower_deleted":
+        case CommandTypes.DELETE_FOLLOWER:
             await update_page_statistics(int(data), 'amount_of_followers', False)
 
 

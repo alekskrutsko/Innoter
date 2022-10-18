@@ -1,4 +1,5 @@
 import pytest
+from rest_framework import status
 from rest_framework.test import force_authenticate
 
 from apps.tag.views import TagViewSet
@@ -20,7 +21,7 @@ class TestTagEndpoint:
 
         response = tag_view(request)
 
-        assert response.status_code == 201
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_retrieve(self, user: user, tag, api_factory):
         request = api_factory.get(f"{self.endpoint}/{tag.pk}/")
@@ -28,7 +29,7 @@ class TestTagEndpoint:
 
         response = tag_view(request, pk=tag.pk)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
     def test_update(self, user: user, tag, new_tag, api_factory):
         request = api_factory.put(f"{self.endpoint}/{tag.pk}/", {"name": new_tag.name}, format="json")
@@ -36,7 +37,7 @@ class TestTagEndpoint:
 
         response = tag_view(request, pk=tag.pk)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
     def test_destroy(self, user: user, tag, api_factory):
         request = api_factory.delete(f"{self.endpoint}{tag.pk}")
@@ -44,7 +45,7 @@ class TestTagEndpoint:
 
         response = tag_view(request, pk=tag.pk)
 
-        assert response.status_code == 204
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_list(self, user: user, api_factory):
         request = api_factory.get(f"{self.endpoint}/")
@@ -52,4 +53,4 @@ class TestTagEndpoint:
 
         response = list_view(request)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK

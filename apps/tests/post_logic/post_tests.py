@@ -63,7 +63,7 @@ class TestPostEndpoint:
 
         response = post_view(request, page_pk=page.pk, pk=post.pk)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert response.data == expected_update_json
 
     def test_destroy(
@@ -79,7 +79,7 @@ class TestPostEndpoint:
 
         response = post_view(request, page_pk=page.pk, pk=post.pk)
 
-        assert response.status_code == 204
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         assert posts - 1 == Post.objects.all().count()
 
     def test_list(self, user: user, page: page, api_factory):
@@ -88,7 +88,7 @@ class TestPostEndpoint:
 
         response = list_view(request, page_pk=page.pk)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == Post.objects.filter(page=Page.objects.get(pk=page.pk)).count()
 
     def test_get_all_posts(self, user: user, page: page, api_factory):
@@ -97,5 +97,5 @@ class TestPostEndpoint:
 
         response = get_all_view(request)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == Post.objects.all().count()

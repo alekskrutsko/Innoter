@@ -1,5 +1,6 @@
 import pytest
 from model_bakery import baker
+from rest_framework import status
 from rest_framework.test import force_authenticate
 
 from apps.like.models import Like
@@ -21,7 +22,7 @@ class TestLikeEndpoint:
 
         response = like_viewset(request)
 
-        assert response.status_code == 201
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_delete_if_exists(self, user: user, post: post, api_factory):
         baker.make(Like, owner=user, post=post)
@@ -31,7 +32,7 @@ class TestLikeEndpoint:
 
         response = like_viewset(request)
 
-        assert response.status_code == 201
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_retrieve(self, user: user, post: post, api_factory):
         like = baker.make(Like, owner=user, post=post)
@@ -41,7 +42,7 @@ class TestLikeEndpoint:
 
         response = like_viewset(request, pk=like.pk)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
 
     def test_destroy(self, user: user, post: post, api_factory):
         like = baker.make(Like, owner=user, post=post)
@@ -51,7 +52,7 @@ class TestLikeEndpoint:
 
         response = like_viewset(request, pk=like.pk)
 
-        assert response.status_code == 204
+        assert response.status_code == status.HTTP_204_NO_CONTENT
 
     def test_list(self, user: user, api_factory):
         request = api_factory.get(f"{self.endpoint}", format="json")
@@ -59,5 +60,5 @@ class TestLikeEndpoint:
 
         response = list_viewset(request)
 
-        assert response.status_code == 200
+        assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == Like.objects.all().count()
